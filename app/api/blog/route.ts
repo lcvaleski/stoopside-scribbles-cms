@@ -1,31 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { writeFile, readFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
+import { readJsonFile, writeJsonFile } from '@/lib/gcs'
 import type { BlogPost, BlogFormData } from '../../types/blog'
 
-const DATA_DIR = path.join(process.cwd(), 'data')
-const POSTS_FILE = path.join(DATA_DIR, 'posts.json')
-
-async function ensureDataDir() {
-  if (!existsSync(DATA_DIR)) {
-    await mkdir(DATA_DIR, { recursive: true })
-  }
-  if (!existsSync(POSTS_FILE)) {
-    await writeFile(POSTS_FILE, JSON.stringify([]))
-  }
-}
+const POSTS_FILE = 'blog-data/posts.json'
 
 async function getPosts(): Promise<BlogPost[]> {
-  await ensureDataDir()
-  const data = await readFile(POSTS_FILE, 'utf-8')
-  return JSON.parse(data)
+  const posts = await readJsonFile<BlogPost[]>(POSTS_FILE)
+  return posts || []
 }
 
 async function savePosts(posts: BlogPost[]) {
-  await ensureDataDir()
-  await writeFile(POSTS_FILE, JSON.stringify(posts, null, 2))
+  await writeJsonFile(POSTS_FILE, posts)
 }
 
 export async function GET() {
@@ -44,7 +30,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   const session = await getServerSession()
   
   if (!session) {
