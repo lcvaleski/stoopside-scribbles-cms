@@ -59,9 +59,9 @@ export default function Dashboard() {
               <div className="bg-white p-6 rounded-lg shadow">
                 <h3 className="text-lg font-semibold mb-2">Posts</h3>
                 <p className="text-gray-600 mb-4">Manage blog posts and articles</p>
-                <button className="text-indigo-600 hover:text-indigo-500">
+                <a href="/blog" className="text-indigo-600 hover:text-indigo-500">
                   Manage Posts →
-                </button>
+                </a>
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow">
