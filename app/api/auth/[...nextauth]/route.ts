@@ -1,62 +1,15 @@
 import NextAuth from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
-import bcrypt from "bcryptjs"
 
 const handler = NextAuth({
   providers: [
-    // Google OAuth Provider
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-    // Credentials Provider (fallback)
-    CredentialsProvider({
-      name: 'Credentials',
-      credentials: {
-        username: { label: "Username", type: "text", placeholder: "admin" },
-        password: { label: "Password", type: "password" }
-      },
-      async authorize(credentials) {
-        // Check if credentials are provided
-        if (!credentials?.username || !credentials?.password) {
-          return null
-        }
-
-        // Get admin credentials from environment variables
-        const adminUsername = process.env.ADMIN_USERNAME || "admin"
-        const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH
-
-        // Fallback to hardcoded for development (remove in production!)
-        const fallbackHash = await bcrypt.hash("password", 10)
-        const passwordHash = adminPasswordHash || fallbackHash
-
-        // Verify username
-        if (credentials.username !== adminUsername) {
-          return null
-        }
-
-        // Verify password using bcrypt
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          passwordHash
-        )
-
-        if (!isPasswordValid) {
-          return null
-        }
-
-        // Return user object if authentication successful
-        return {
-          id: "1",
-          name: adminUsername,
-          email: `${adminUsername}@stoopside.com`
-        }
-      }
     })
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       // For Google OAuth, check if email is authorized
       if (account?.provider === "google") {
         const authorizedEmails = process.env.AUTHORIZED_EMAILS?.split(",").map(e => e.trim()) || []
@@ -76,10 +29,9 @@ const handler = NextAuth({
         return false
       }
       
-      // Allow credentials provider
       return true
     },
-    async session({ session, token }) {
+    async session({ session }) {
       // Add custom session properties if needed
       return session
     },
