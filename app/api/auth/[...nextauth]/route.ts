@@ -83,7 +83,7 @@ const handler = NextAuth({
       // Add custom session properties if needed
       return session
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, account }) {
       // Store provider info in token
       if (account) {
         token.provider = account.provider
