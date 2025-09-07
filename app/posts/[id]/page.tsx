@@ -65,7 +65,6 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
     setSaving(true)
     try {
       if (postId === 'new') {
-        // Create new post
         const { error } = await supabase
           .from('posts')
           .insert([{
@@ -77,7 +76,6 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
 
         if (error) throw error
       } else {
-        // Update existing post
         const { error } = await supabase
           .from('posts')
           .update({
@@ -102,8 +100,8 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
+      <div style={{ padding: '40px 20px', maxWidth: '600px', margin: '0 auto' }}>
+        <div style={{ color: '#666', fontStyle: 'italic' }}>Loading...</div>
       </div>
     )
   }
@@ -111,84 +109,156 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
   if (!session) return null
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Simple Header */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
+    <div style={{ 
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      fontSize: '16px',
+      lineHeight: '1.6',
+      color: '#000',
+      background: '#fff',
+      minHeight: '100vh'
+    }}>
+      <div style={{ 
+        maxWidth: '600px', 
+        margin: '0 auto', 
+        padding: '40px 20px' 
+      }}>
+        {/* Header */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: '30px',
+          paddingBottom: '20px',
+          borderBottom: '1px solid #e5e5e5'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <button
               onClick={() => router.push('/posts')}
-              className="text-gray-500 hover:text-gray-700"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#666',
+                cursor: 'pointer',
+                fontSize: '16px',
+                padding: 0
+              }}
+              onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
+              onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
             >
               ← Back
             </button>
-            <h1 className="text-xl font-semibold">
+            <h1 style={{ fontSize: '20px', fontWeight: 'normal', margin: 0 }}>
               {postId === 'new' ? 'New Post' : 'Edit Post'}
             </h1>
           </div>
           <button
             onClick={savePost}
             disabled={saving || !post.title || !post.content}
-            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50"
+            style={{
+              background: 'none',
+              border: '1px solid #0066cc',
+              color: '#0066cc',
+              cursor: saving || !post.title || !post.content ? 'default' : 'pointer',
+              fontSize: '16px',
+              padding: '6px 16px',
+              borderRadius: '4px',
+              opacity: saving || !post.title || !post.content ? 0.5 : 1
+            }}
+            onMouseOver={(e) => {
+              if (!saving && post.title && post.content) {
+                e.currentTarget.style.background = '#0066cc'
+                e.currentTarget.style.color = '#fff'
+              }
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'none'
+              e.currentTarget.style.color = '#0066cc'
+            }}
           >
             {saving ? 'Saving...' : 'Save'}
           </button>
         </div>
-      </div>
 
-      {/* Post Form */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow p-6 space-y-6">
+        {/* Form */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Title
-            </label>
             <input
               type="text"
               value={post.title}
               onChange={(e) => setPost({ ...post, title: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Enter post title"
+              placeholder="Title"
+              style={{
+                width: '100%',
+                padding: '8px 0',
+                border: 'none',
+                borderBottom: '1px solid #e5e5e5',
+                fontSize: '18px',
+                outline: 'none',
+                background: 'transparent'
+              }}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Content
-            </label>
             <textarea
               value={post.content}
               onChange={(e) => setPost({ ...post, content: e.target.value })}
-              rows={15}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Write your post content here..."
+              placeholder="Write your post..."
+              style={{
+                width: '100%',
+                minHeight: '400px',
+                padding: '12px 0',
+                border: 'none',
+                fontSize: '16px',
+                lineHeight: '1.8',
+                outline: 'none',
+                resize: 'vertical',
+                fontFamily: 'inherit',
+                background: 'transparent'
+              }}
             />
           </div>
 
-          <div className="flex gap-6">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Date
-              </label>
+          <div style={{ 
+            display: 'flex', 
+            gap: '30px', 
+            alignItems: 'center',
+            paddingTop: '12px',
+            borderTop: '1px solid #e5e5e5'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <label style={{ fontSize: '14px', color: '#666' }}>Date:</label>
               <input
                 type="date"
                 value={post.date}
                 onChange={(e) => setPost({ ...post, date: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                style={{
+                  border: 'none',
+                  fontSize: '14px',
+                  color: '#666',
+                  outline: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer'
+                }}
               />
             </div>
 
-            <div className="flex items-center">
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={post.published}
-                  onChange={(e) => setPost({ ...post, published: e.target.checked })}
-                  className="mr-2"
-                />
-                <span className="text-sm font-medium text-gray-700">Published</span>
-              </label>
-            </div>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              color: '#666'
+            }}>
+              <input
+                type="checkbox"
+                checked={post.published}
+                onChange={(e) => setPost({ ...post, published: e.target.checked })}
+                style={{ cursor: 'pointer' }}
+              />
+              Published
+            </label>
           </div>
         </div>
       </div>

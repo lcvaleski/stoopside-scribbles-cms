@@ -44,7 +44,7 @@ export default function PostsList() {
   }
 
   const deletePost = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this post?')) return
+    if (!confirm('Delete this post?')) return
 
     try {
       const { error } = await supabase
@@ -62,8 +62,8 @@ export default function PostsList() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
+      <div style={{ padding: '40px 20px', maxWidth: '600px', margin: '0 auto' }}>
+        <div style={{ color: '#666', fontStyle: 'italic' }}>Loading...</div>
       </div>
     )
   }
@@ -71,75 +71,120 @@ export default function PostsList() {
   if (!session) return null
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Simple Header */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-semibold">Posts</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">{session.user?.email}</span>
+    <div style={{ 
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      fontSize: '16px',
+      lineHeight: '1.6',
+      color: '#000',
+      background: '#fff',
+      minHeight: '100vh'
+    }}>
+      <div style={{ 
+        maxWidth: '600px', 
+        margin: '0 auto', 
+        padding: '40px 20px' 
+      }}>
+        {/* Header */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: '30px',
+          paddingBottom: '20px',
+          borderBottom: '1px solid #e5e5e5'
+        }}>
+          <h1 style={{ fontSize: '20px', fontWeight: 'normal', margin: 0 }}>Posts</h1>
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+            <button
+              onClick={() => router.push('/posts/new')}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#0066cc',
+                cursor: 'pointer',
+                fontSize: '16px',
+                padding: 0
+              }}
+              onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
+              onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
+            >
+              New Post
+            </button>
             <button
               onClick={() => signOut()}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#666',
+                cursor: 'pointer',
+                fontSize: '14px',
+                padding: 0
+              }}
+              onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
+              onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
             >
               Sign out
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Posts List */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <button
-            onClick={() => router.push('/posts/new')}
-            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-          >
-            New Post
-          </button>
-        </div>
-
-        <div className="bg-white rounded-lg shadow">
-          {posts.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              No posts yet. Create your first post!
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-200">
-              {posts.map((post) => (
-                <div key={post.id} className="p-4 hover:bg-gray-50 flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <h3 className="font-medium">{post.title}</h3>
-                      {post.published ? (
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Published</span>
-                      ) : (
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Draft</span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {new Date(post.date).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
+        {/* Posts List */}
+        {posts.length === 0 ? (
+          <div style={{ color: '#666', fontStyle: 'italic' }}>
+            No posts yet.
+          </div>
+        ) : (
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {posts.map((post) => (
+              <li key={post.id} style={{ marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ flex: 1 }}>
                     <button
                       onClick={() => router.push(`/posts/${post.id}`)}
-                      className="text-sm text-indigo-600 hover:text-indigo-800"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#0066cc',
+                        cursor: 'pointer',
+                        fontSize: '16px',
+                        padding: 0,
+                        textAlign: 'left'
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                      onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
                     >
-                      Edit
+                      {post.title}
                     </button>
-                    <button
-                      onClick={() => deletePost(post.id)}
-                      className="text-sm text-red-600 hover:text-red-800"
-                    >
-                      Delete
-                    </button>
+                    {!post.published && (
+                      <span style={{ 
+                        color: '#999', 
+                        fontSize: '14px',
+                        marginLeft: '8px'
+                      }}>
+                        (draft)
+                      </span>
+                    )}
                   </div>
+                  <button
+                    onClick={() => deletePost(post.id)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#999',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      padding: '0 0 0 20px'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.color = '#c33'}
+                    onMouseOut={(e) => e.currentTarget.style.color = '#999'}
+                  >
+                    delete
+                  </button>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   )
