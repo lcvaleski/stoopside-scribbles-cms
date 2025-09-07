@@ -57,11 +57,13 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-2">Posts</h3>
-                <p className="text-gray-600 mb-4">Manage blog posts and articles</p>
-                <a href="/blog" className="text-indigo-600 hover:text-indigo-500">
-                  Manage Posts →
-                </a>
+                <h3 className="text-lg font-semibold mb-2">Content</h3>
+                <p className="text-gray-600 mb-4">Manage site content and blog posts</p>
+                <button 
+                  onClick={() => router.push('/dashboard/content')}
+                  className="text-indigo-600 hover:text-indigo-500">
+                  Manage Content →
+                </button>
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow">
