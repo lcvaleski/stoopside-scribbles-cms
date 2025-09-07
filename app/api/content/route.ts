@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -50,13 +51,19 @@ export async function GET() {
   }
 }
 
-// POST endpoint - requires authentication (handled by middleware)
+// POST endpoint - requires authentication
 export async function POST(request: NextRequest) {
+  // Check authentication
+  const session = await getServerSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const content = await request.json();
     await saveContent(content);
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to save content' }, { status: 500 });
   }
 }
