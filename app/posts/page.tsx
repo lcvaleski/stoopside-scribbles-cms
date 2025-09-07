@@ -4,6 +4,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import Header from '@/app/components/Header'
 
 interface Post {
   id: string
@@ -79,12 +80,15 @@ export default function PostsList() {
       background: '#fff',
       minHeight: '100vh'
     }}>
+      {/* Stoopside CMS Header */}
+      <Header />
+      
       <div style={{ 
         maxWidth: '600px', 
         margin: '0 auto', 
-        padding: '40px 20px' 
+        padding: '0 20px 40px 20px' 
       }}>
-        {/* Header */}
+        {/* Navigation */}
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
