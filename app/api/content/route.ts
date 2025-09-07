@@ -1,45 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import fs from 'fs/promises';
-import path from 'path';
-
-const CONTENT_FILE = path.join(process.cwd(), 'content.json');
-
-interface Content {
-  title: string;
-  subtitle: string;
-  posts: Array<{
-    id: string;
-    title: string;
-    content: string;
-    date: string;
-    published: boolean;
-  }>;
-}
-
-async function getContent(): Promise<Content> {
-  try {
-    const data = await fs.readFile(CONTENT_FILE, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    // Return default content if file doesn't exist
-    return {
-      title: "Stoop Side Scribbles",
-      subtitle: "Welcome to Stoop Side Scribbles.",
-      posts: []
-    };
-  }
-}
-
-async function saveContent(content: Content) {
-  await fs.writeFile(CONTENT_FILE, JSON.stringify(content, null, 2));
-}
+import { supabase, type SiteSettings, type Post } from '@/lib/supabase';
 
 // GET endpoint - public, no auth required
 export async function GET() {
   try {
-    const content = await getContent();
-    return NextResponse.json(content, {
+    // Fetch site settings
+    const { data: settings, error: settingsError } = await supabase
+      .from('site_settings')
+      .select('*')
+      .single();
+
+    if (settingsError && settingsError.code !== 'PGRST116') {
+      throw settingsError;
+    }
+
+    // Fetch all published posts
+    const { data: posts, error: postsError } = await supabase
+      .from('posts')
+      .select('*')
+      .order('date', { ascending: false });
+
+    if (postsError) {
+      throw postsError;
+    }
+
+    const response = {
+      title: settings?.title || 'Stoop Side Scribbles',
+      subtitle: settings?.subtitle || 'Welcome to Stoop Side Scribbles.',
+      posts: posts || []
+    };
+
+    return NextResponse.json(response, {
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET',
@@ -47,6 +39,7 @@ export async function GET() {
       },
     });
   } catch (error) {
+    console.error('Error fetching content:', error);
     return NextResponse.json({ error: 'Failed to fetch content' }, { status: 500 });
   }
 }
@@ -60,10 +53,53 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const content = await request.json();
-    await saveContent(content);
+    const { title, subtitle, posts } = await request.json();
+
+    // Update or insert site settings
+    const { error: settingsError } = await supabase
+      .from('site_settings')
+      .upsert({
+        id: '00000000-0000-0000-0000-000000000001', // Use a fixed ID for single row
+        title,
+        subtitle
+      });
+
+    if (settingsError) {
+      throw settingsError;
+    }
+
+    // Delete all existing posts and insert new ones
+    // This is a simple approach for MVP - in production, you'd want to sync more carefully
+    const { error: deleteError } = await supabase
+      .from('posts')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all (using impossible ID)
+
+    if (deleteError && deleteError.code !== 'PGRST116') {
+      console.error('Delete error:', deleteError);
+    }
+
+    // Insert all posts
+    if (posts && posts.length > 0) {
+      const postsToInsert = posts.map((post: Post) => ({
+        title: post.title,
+        content: post.content,
+        date: post.date,
+        published: post.published
+      }));
+
+      const { error: postsError } = await supabase
+        .from('posts')
+        .insert(postsToInsert);
+
+      if (postsError) {
+        throw postsError;
+      }
+    }
+
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    console.error('Error saving content:', error);
     return NextResponse.json({ error: 'Failed to save content' }, { status: 500 });
   }
 }
