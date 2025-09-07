@@ -4,11 +4,23 @@ import path from 'path';
 
 const CONTENT_FILE = path.join(process.cwd(), 'content.json');
 
-async function getContent() {
+interface Content {
+  title: string;
+  subtitle: string;
+  posts: Array<{
+    id: string;
+    title: string;
+    content: string;
+    date: string;
+    published: boolean;
+  }>;
+}
+
+async function getContent(): Promise<Content> {
   try {
     const data = await fs.readFile(CONTENT_FILE, 'utf-8');
     return JSON.parse(data);
-  } catch (error) {
+  } catch {
     // Return default content if file doesn't exist
     return {
       title: "Stoop Side Scribbles",
@@ -18,7 +30,7 @@ async function getContent() {
   }
 }
 
-async function saveContent(content: any) {
+async function saveContent(content: Content) {
   await fs.writeFile(CONTENT_FILE, JSON.stringify(content, null, 2));
 }
 

@@ -84,7 +84,7 @@ export default function ContentManager() {
     })
   }
 
-  const updatePost = (id: string, field: string, value: any) => {
+  const updatePost = (id: string, field: string, value: string | boolean) => {
     setContent({
       ...content,
       posts: content.posts.map(post =>
@@ -186,7 +186,7 @@ export default function ContentManager() {
 
           <div className="space-y-4">
             {content.posts.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No posts yet. Click "Add New Post" to create one.</p>
+              <p className="text-gray-500 text-center py-8">No posts yet. Click &quot;Add New Post&quot; to create one.</p>
             ) : (
               content.posts.map(post => (
                 <div key={post.id} className="border border-gray-200 rounded-lg p-4">
