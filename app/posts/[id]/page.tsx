@@ -13,9 +13,10 @@ interface Post {
   published: boolean
 }
 
-export default function EditPost({ params }: { params: { id: string } }) {
+export default function EditPost({ params }: { params: Promise<{ id: string }> }) {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const [postId, setPostId] = useState<string>('')
   const [post, setPost] = useState<Post>({
     id: '',
     title: '',
@@ -27,21 +28,26 @@ export default function EditPost({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    params.then(p => setPostId(p.id))
+  }, [params])
+
+  useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/signin')
-    } else if (status === 'authenticated' && params.id !== 'new') {
+    } else if (status === 'authenticated' && postId && postId !== 'new') {
       fetchPost()
-    } else if (params.id === 'new') {
+    } else if (postId === 'new') {
       setLoading(false)
     }
-  }, [status, router, params.id])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, router, postId])
 
   const fetchPost = async () => {
     try {
       const { data, error } = await supabase
         .from('posts')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', postId)
         .single()
 
       if (error) throw error
@@ -58,7 +64,7 @@ export default function EditPost({ params }: { params: { id: string } }) {
   const savePost = async () => {
     setSaving(true)
     try {
-      if (params.id === 'new') {
+      if (postId === 'new') {
         // Create new post
         const { error } = await supabase
           .from('posts')
@@ -80,7 +86,7 @@ export default function EditPost({ params }: { params: { id: string } }) {
             date: post.date,
             published: post.published
           })
-          .eq('id', params.id)
+          .eq('id', postId)
 
         if (error) throw error
       }
@@ -117,7 +123,7 @@ export default function EditPost({ params }: { params: { id: string } }) {
               ← Back
             </button>
             <h1 className="text-xl font-semibold">
-              {params.id === 'new' ? 'New Post' : 'Edit Post'}
+              {postId === 'new' ? 'New Post' : 'Edit Post'}
             </h1>
           </div>
           <button
