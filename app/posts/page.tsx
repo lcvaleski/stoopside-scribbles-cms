@@ -63,6 +63,21 @@ export default function PostsList() {
     }
   }
 
+  const togglePin = async (id: string, currentPinned: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .update({ is_pinned: !currentPinned })
+        .eq('id', id)
+
+      if (error) throw error
+      await fetchPosts()
+    } catch (error) {
+      console.error('Error toggling pin:', error)
+      alert('Failed to update pin status')
+    }
+  }
+
   if (status === 'loading' || loading) {
     return (
       <div style={{ padding: '40px 20px', maxWidth: '600px', margin: '0 auto' }}>
@@ -179,21 +194,39 @@ export default function PostsList() {
                       </span>
                     )}
                   </div>
-                  <button
-                    onClick={() => deletePost(post.id)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#999',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      padding: '0 0 0 20px'
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.color = '#c33'}
-                    onMouseOut={(e) => e.currentTarget.style.color = '#999'}
-                  >
-                    delete
-                  </button>
+                  <div style={{ display: 'flex', gap: '15px' }}>
+                    <button
+                      onClick={() => togglePin(post.id, post.is_pinned || false)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: post.is_pinned ? '#f59e0b' : '#999',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        padding: 0
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.color = '#f59e0b'}
+                      onMouseOut={(e) => e.currentTarget.style.color = post.is_pinned ? '#f59e0b' : '#999'}
+                      title={post.is_pinned ? 'Unpin post' : 'Pin post'}
+                    >
+                      {post.is_pinned ? 'unpin' : 'pin'}
+                    </button>
+                    <button
+                      onClick={() => deletePost(post.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#999',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        padding: 0
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.color = '#c33'}
+                      onMouseOut={(e) => e.currentTarget.style.color = '#999'}
+                    >
+                      delete
+                    </button>
+                  </div>
                 </div>
               </li>
             ))}
