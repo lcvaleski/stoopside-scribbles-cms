@@ -12,6 +12,7 @@ interface Post {
   content: string
   date: string
   published: boolean
+  is_pinned?: boolean
 }
 
 export default function PostsList() {
@@ -33,6 +34,7 @@ export default function PostsList() {
       const { data, error } = await supabase
         .from('posts')
         .select('*')
+        .order('is_pinned', { ascending: false })
         .order('date', { ascending: false })
 
       if (error) throw error
@@ -159,6 +161,14 @@ export default function PostsList() {
                     >
                       {post.title}
                     </button>
+                    {post.is_pinned && (
+                      <span style={{ 
+                        fontSize: '14px',
+                        marginLeft: '8px'
+                      }}>
+                        📌
+                      </span>
+                    )}
                     {!post.published && (
                       <span style={{ 
                         color: '#999', 

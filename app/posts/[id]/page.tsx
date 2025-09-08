@@ -12,6 +12,7 @@ interface Post {
   content: string
   date: string
   published: boolean
+  is_pinned?: boolean
 }
 
 export default function EditPost({ params }: { params: { id: string } }) {
@@ -23,7 +24,8 @@ export default function EditPost({ params }: { params: { id: string } }) {
     title: '',
     content: '',
     date: new Date().toISOString().split('T')[0],
-    published: false
+    published: false,
+    is_pinned: false
   })
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -68,7 +70,8 @@ export default function EditPost({ params }: { params: { id: string } }) {
             title: post.title,
             content: post.content,
             date: post.date,
-            published: post.published
+            published: post.published,
+            is_pinned: post.is_pinned
           }])
 
         if (error) throw error
@@ -79,7 +82,8 @@ export default function EditPost({ params }: { params: { id: string } }) {
             title: post.title,
             content: post.content,
             date: post.date,
-            published: post.published
+            published: post.published,
+            is_pinned: post.is_pinned
           })
           .eq('id', postId)
 
@@ -258,6 +262,23 @@ export default function EditPost({ params }: { params: { id: string } }) {
                 style={{ cursor: 'pointer' }}
               />
               Published
+            </label>
+
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              color: '#666'
+            }}>
+              <input
+                type="checkbox"
+                checked={post.is_pinned || false}
+                onChange={(e) => setPost({ ...post, is_pinned: e.target.checked })}
+                style={{ cursor: 'pointer' }}
+              />
+              📌 Pinned
             </label>
           </div>
         </div>

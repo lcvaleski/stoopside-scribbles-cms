@@ -19,6 +19,7 @@ export interface Post {
   content: string
   date: string
   published: boolean
+  is_pinned?: boolean
   created_at?: string
   updated_at?: string
 }
