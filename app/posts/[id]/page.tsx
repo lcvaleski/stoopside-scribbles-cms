@@ -14,10 +14,10 @@ interface Post {
   published: boolean
 }
 
-export default function EditPost({ params }: { params: Promise<{ id: string }> }) {
+export default function EditPost({ params }: { params: { id: string } }) {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [postId, setPostId] = useState<string>('')
+  const postId = params.id
   const [post, setPost] = useState<Post>({
     id: '',
     title: '',
@@ -27,10 +27,6 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
   })
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    params.then(p => setPostId(p.id))
-  }, [params])
 
   useEffect(() => {
     if (status === 'unauthenticated') {
