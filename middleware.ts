@@ -1,19 +1,68 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: any) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: any) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+        },
+      },
+    }
+  )
 
-  // If no session and trying to access protected route, redirect to signin
-  if (!session && (req.nextUrl.pathname.startsWith('/posts') || req.nextUrl.pathname.startsWith('/dashboard'))) {
-    return NextResponse.redirect(new URL('/auth/signin', req.url))
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // If no user and trying to access protected route, redirect to signin
+  if (!user && (request.nextUrl.pathname.startsWith('/posts') || request.nextUrl.pathname.startsWith('/dashboard'))) {
+    return NextResponse.redirect(new URL('/auth/signin', request.url))
   }
 
-  return res
+  return response
 }
 
 export const config = {
