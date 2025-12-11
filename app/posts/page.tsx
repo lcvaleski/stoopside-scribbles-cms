@@ -1,6 +1,5 @@
 'use client'
 
-import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -16,18 +15,24 @@ interface Post {
 }
 
 export default function PostsList() {
-  const { data: session, status } = useSession()
   const router = useRouter()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    checkAuth()
+  }, [])
+
+  const checkAuth = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       router.push('/auth/signin')
-    } else if (status === 'authenticated') {
+    } else {
+      setUser(user)
       fetchPosts()
     }
-  }, [status, router])
+  }
 
   const fetchPosts = async () => {
     try {
@@ -78,7 +83,12 @@ export default function PostsList() {
     }
   }
 
-  if (status === 'loading' || loading) {
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push('/auth/signin')
+  }
+
+  if (loading) {
     return (
       <div style={{ padding: '40px 20px', maxWidth: '600px', margin: '0 auto' }}>
         <div style={{ color: '#666', fontStyle: 'italic' }}>Loading...</div>
@@ -86,7 +96,7 @@ export default function PostsList() {
     )
   }
 
-  if (!session) return null
+  if (!user) return null
 
   return (
     <div style={{ 
@@ -132,7 +142,7 @@ export default function PostsList() {
               New Post
             </button>
             <button
-              onClick={() => signOut()}
+              onClick={handleSignOut}
               style={{
                 background: 'none',
                 border: 'none',

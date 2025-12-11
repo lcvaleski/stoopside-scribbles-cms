@@ -17,6 +17,7 @@
     "debug": "4.3.4"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.57.2",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^3.0.2",
