@@ -21,7 +21,9 @@ export default function SignIn() {
     setError('')
     setMessage('')
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email)
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://www.stoopsidecms.com/auth/reset-password',
+    })
     if (error) {
       setError('Could not send reset email')
     } else {
