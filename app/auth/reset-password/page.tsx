@@ -1,59 +1,57 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
-export default function SignIn() {
-  const [email, setEmail] = useState('')
+export default function ResetPassword() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
+  const [ready, setReady] = useState(false)
   const router = useRouter()
 
-  const handleForgotPassword = async () => {
-    if (!email) {
-      setError('Enter your email first')
+  useEffect(() => {
+    supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setReady(true)
+      }
+    })
+  }, [])
+
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters')
       return
     }
     setLoading(true)
     setError('')
-    setMessage('')
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email)
+    const { error } = await supabase.auth.updateUser({ password })
     if (error) {
-      setError('Could not send reset email')
+      setError('Could not update password')
+      setLoading(false)
     } else {
-      setMessage('Check your email for a reset link')
+      router.push('/posts')
     }
-    setLoading(false)
   }
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (error) {
-        setError('Invalid credentials')
-        return
-      }
-
-      if (data.user) {
-        router.push('/posts')
-      }
-    } catch (err) {
-      setError('An error occurred')
-    } finally {
-      setLoading(false)
-    }
+  if (!ready) {
+    return (
+      <div style={{
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        fontSize: '16px',
+        color: '#000',
+        background: '#fff',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <p style={{ color: '#999' }}>Loading...</p>
+      </div>
+    )
   }
 
   return (
@@ -79,34 +77,17 @@ export default function SignIn() {
           marginBottom: '30px',
           textAlign: 'center'
         }}>
-          Stoopside CMS
+          New password
         </h1>
 
-        <form onSubmit={handleSignIn}>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            required
-            style={{
-              width: '100%',
-              padding: '8px 0',
-              fontSize: '16px',
-              border: 'none',
-              borderBottom: '1px solid #e5e5e5',
-              marginBottom: '20px',
-              background: 'transparent',
-              outline: 'none'
-            }}
-          />
-
+        <form onSubmit={handleReset}>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
+            placeholder="New password"
             required
+            autoFocus
             style={{
               width: '100%',
               padding: '8px 0',
@@ -127,17 +108,6 @@ export default function SignIn() {
               textAlign: 'center'
             }}>
               {error}
-            </div>
-          )}
-
-          {message && (
-            <div style={{
-              color: '#2a7d2a',
-              fontSize: '14px',
-              marginBottom: '20px',
-              textAlign: 'center'
-            }}>
-              {message}
             </div>
           )}
 
@@ -167,24 +137,7 @@ export default function SignIn() {
               e.currentTarget.style.color = '#0066cc'
             }}
           >
-            {loading ? 'Signing in...' : 'Sign in'}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleForgotPassword}
-            disabled={loading}
-            style={{
-              width: '100%',
-              background: 'none',
-              border: 'none',
-              color: '#999',
-              cursor: 'pointer',
-              fontSize: '14px',
-              padding: '12px 0 0',
-            }}
-          >
-            Forgot password?
+            {loading ? 'Updating...' : 'Update password'}
           </button>
         </form>
       </div>
