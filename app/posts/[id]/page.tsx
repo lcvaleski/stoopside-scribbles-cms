@@ -1,6 +1,5 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -16,9 +15,9 @@ interface Post {
 }
 
 export default function EditPost({ params }: { params: { id: string } }) {
-  const { data: session, status } = useSession()
   const router = useRouter()
   const postId = params.id
+  const [user, setUser] = useState<any>(null)
   const [post, setPost] = useState<Post>({
     id: '',
     title: '',
@@ -31,15 +30,22 @@ export default function EditPost({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    checkAuth()
+  }, [])
+
+  const checkAuth = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       router.push('/auth/signin')
-    } else if (status === 'authenticated' && postId && postId !== 'new') {
-      fetchPost()
-    } else if (postId === 'new') {
-      setLoading(false)
+    } else {
+      setUser(user)
+      if (postId && postId !== 'new') {
+        fetchPost()
+      } else {
+        setLoading(false)
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, router, postId])
+  }
 
   const fetchPost = async () => {
     try {
@@ -99,7 +105,7 @@ export default function EditPost({ params }: { params: { id: string } }) {
     }
   }
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
       <div style={{ padding: '40px 20px', maxWidth: '600px', margin: '0 auto' }}>
         <div style={{ color: '#666', fontStyle: 'italic' }}>Loading...</div>
@@ -107,7 +113,7 @@ export default function EditPost({ params }: { params: { id: string } }) {
     )
   }
 
-  if (!session) return null
+  if (!user) return null
 
   return (
     <div style={{ 
